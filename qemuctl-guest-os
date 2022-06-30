@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+
+# Script copied from
+# https://github.com/cirosantilli/linux-cheat/blob/master/ubuntu-18.04.1-desktop-amd64.sh
+#
+# Following the answer on StackOverflow
+# https://askubuntu.com/a/1046792
+#
+# Modified to use Xubuntu 22.04 desktop amd64.
+
+set -eux
+
+qemu_images_dir="$HOME/.local/qemu/images"
+
+guest_id=xubuntu-22.04-desktop-amd64
+
+OPTIND=1
+while getopts i: OPT; do
+	case "$OPT" in
+		i)
+			guest_id="$OPTARG"
+			;;
+	esac
+done
+shift "$(($OPTIND - 1))"
+
+guest_iso="$qemu_images_dir/${guest_id}.iso"
+
+guest_disk_fmt='qcow2'
+guest_disk_img="${qemu_images_dir}/${guest_id}.img.${guest_disk_fmt}"
+guest_disk_snapshot="${qemu_images_dir}/${guest_id}.snapshot.${guest_disk_fmt}"
+
+guest_ram='4G'
+guest_cpus='4'
+guest_hdd='40G'
+
+# Go through installer manually.
+if [ ! -f "$guest_disk_img" ]; then
+	qemu-img create -f "$guest_disk_fmt" "$guest_disk_img" $guest_hdd
+	qemu-system-x86_64 \
+		-cdrom "$guest_iso" \
+		-drive "file=${guest_disk_img},format=${guest_disk_fmt}" \
+		-enable-kvm \
+		-m $guest_ram \
+		-smp $guest_cpus \
+		;
+fi
+
+# Snapshot the installation.
+if [ ! -f "$guest_disk_snapshot" ]; then
+	qemu-img \
+		create \
+		-b "$guest_disk_img" \
+		-f "$guest_disk_fmt" \
+		-F "$guest_disk_fmt" \
+		"$guest_disk_snapshot" \
+		;
+fi
+
+# Run the installed image.
+qemu-system-x86_64 \
+	-drive "file=${guest_disk_snapshot},format=${guest_disk_fmt}" \
+	-enable-kvm \
+	-m $guest_ram \
+	-serial mon:stdio \
+	-smp $guest_cpus \
+	-audiodev id=pa,driver=pa \
+	-vga virtio \
+	-cpu host \
+	"$@" \
+	;
