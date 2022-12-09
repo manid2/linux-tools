@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+#
+# Installs to user local bin if not already installed.
+
+install_bins () {
+	local user_local_bin_path="$HOME/.local/bin"
+	local user_local_bins=( \
+		qemuctl-guest-os
+	)
+
+	for bin in "${user_local_bins[@]}"
+	do
+		bin_path="$user_local_bin_path/$bin"
+		if [ ! -f "$bin_path" ]; then
+			rel_path=$(realpath \
+				--relative-to=$user_local_bin_path \
+				$bin)
+
+			ln -s $rel_path $bin_path
+		else
+			echo "'$bin' already installed."
+		fi
+	done
+}
+
+install_bins

@@ -1,0 +1,6 @@
+# Editor generated files
+*.swp
+
+# ignore tags
+tags
+TAGS
