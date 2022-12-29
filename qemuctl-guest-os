@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 # Script copied from
 # https://github.com/cirosantilli/linux-cheat/blob/master/ubuntu-18.04.1-desktop-amd64.sh
@@ -8,27 +8,80 @@
 #
 # Modified to use Xubuntu 22.04 desktop amd64.
 
-set -eux
+set -o errexit
+set -o pipefail
+set -o nounset
 
-qemu_images_dir="$HOME/.local/qemu/images"
+# defaults
+THIS_SCRIPT="${0##*/}"
+GUEST_OS="xubuntu-22.04-desktop-amd64"
 
-guest_id=xubuntu-22.04-desktop-amd64
+# temps
+T_QEMU_IMAGES_DIR=".local/qemu/images"
 
-OPTIND=1
-while getopts i: OPT; do
-	case "$OPT" in
-		i)
-			guest_id="$OPTARG"
+# print help doc
+_help () {
+	echo "    Usage: $THIS_SCRIPT [options]"
+	echo
+	echo "    Note: The guest OS ISO image must be pre-downloaded into pre-defined path ~/$T_QEMU_IMAGES_DIR"
+	echo
+	echo "    Options:"
+	echo "        [-g|--guest-os]"
+	echo "            Name of guest OS matching the iso file name"
+	echo
+	echo "        TODO:"
+	echo "        [-r|--ram]"
+	echo "            System memory RAM size."
+	echo "        [-d|--disk]"
+	echo "            Hard disk memory HDD size."
+	echo "        [-c|--cpus]"
+	echo "            No of CPUs."
+	echo "        [-f|--format]"
+	echo "            Guest OS valid output image format e.g. qcow2."
+	echo "        [-s|--use-snapshot]"
+	echo "            Use provided snapshot if valid"
+	echo "        [--create-snapshot-on-exit]"
+	echo "            Creates snapshot on exit"
+	echo
+	echo "    Examples:"
+	echo "        * Using a default Guest OS '$GUEST_OS'"
+	echo "        $THIS_SCRIPT"
+	echo
+	echo "        * Using any Guest OS"
+	echo "        $THIS_SCRIPT -g \$GUEST_OS"
+}
+
+# echo before executing the commands
+_exec () {
+	echo "cmd: $@"
+	"$@"
+}
+
+# parse command line args
+while [[ $# -gt 0 ]]
+do
+	key="$1"
+	case $key in
+		-g|--guest-os)
+			GUEST_OS="$2"
+			shift
+			;;
+		*)
+			echo "*** Invalid option '$1' see help doc below for examples ***"
+			echo
+			_help
+			exit
 			;;
 	esac
+	shift
 done
-shift "$(($OPTIND - 1))"
 
-guest_iso="$qemu_images_dir/${guest_id}.iso"
+qemu_images_dir="$HOME/$T_QEMU_IMAGES_DIR"
+guest_iso="$qemu_images_dir/${GUEST_OS}.iso"
 
 guest_disk_fmt='qcow2'
-guest_disk_img="${qemu_images_dir}/${guest_id}.img.${guest_disk_fmt}"
-guest_disk_snapshot="${qemu_images_dir}/${guest_id}.snapshot.${guest_disk_fmt}"
+guest_disk_img="${qemu_images_dir}/${GUEST_OS}.img.${guest_disk_fmt}"
+guest_disk_snapshot="${qemu_images_dir}/${GUEST_OS}.snapshot.${guest_disk_fmt}"
 
 guest_ram='4G'
 guest_cpus='4'
@@ -36,8 +89,15 @@ guest_hdd='40G'
 
 # Go through installer manually.
 if [ ! -f "$guest_disk_img" ]; then
-	qemu-img create -f "$guest_disk_fmt" "$guest_disk_img" $guest_hdd
-	qemu-system-x86_64 \
+	_exec \
+		qemu-img create \
+		-f "$guest_disk_fmt" \
+		"$guest_disk_img" \
+		$guest_hdd \
+		;
+
+	_exec \
+		qemu-system-x86_64 \
 		-cdrom "$guest_iso" \
 		-drive "file=${guest_disk_img},format=${guest_disk_fmt}" \
 		-enable-kvm \
@@ -48,8 +108,8 @@ fi
 
 # Snapshot the installation.
 if [ ! -f "$guest_disk_snapshot" ]; then
-	qemu-img \
-		create \
+	_exec \
+		qemu-img create \
 		-b "$guest_disk_img" \
 		-f "$guest_disk_fmt" \
 		-F "$guest_disk_fmt" \
@@ -58,7 +118,8 @@ if [ ! -f "$guest_disk_snapshot" ]; then
 fi
 
 # Run the installed image.
-qemu-system-x86_64 \
+_exec \
+	qemu-system-x86_64 \
 	-drive "file=${guest_disk_snapshot},format=${guest_disk_fmt}" \
 	-enable-kvm \
 	-m $guest_ram \
@@ -67,5 +128,4 @@ qemu-system-x86_64 \
 	-audiodev id=pa,driver=pa \
 	-vga virtio \
 	-cpu host \
-	"$@" \
 	;
