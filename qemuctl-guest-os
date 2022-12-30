@@ -21,34 +21,36 @@ T_QEMU_IMAGES_DIR=".local/qemu/images"
 
 # print help doc
 _help () {
-	echo "    Usage: $THIS_SCRIPT [options]"
-	echo
-	echo "    Note: The guest OS ISO image must be pre-downloaded into pre-defined path ~/$T_QEMU_IMAGES_DIR"
-	echo
-	echo "    Options:"
-	echo "        [-g|--guest-os]"
-	echo "            Name of guest OS matching the iso file name"
-	echo
-	echo "        TODO:"
-	echo "        [-r|--ram]"
-	echo "            System memory RAM size."
-	echo "        [-d|--disk]"
-	echo "            Hard disk memory HDD size."
-	echo "        [-c|--cpus]"
-	echo "            No of CPUs."
-	echo "        [-f|--format]"
-	echo "            Guest OS valid output image format e.g. qcow2."
-	echo "        [-s|--use-snapshot]"
-	echo "            Use provided snapshot if valid"
-	echo "        [--create-snapshot-on-exit]"
-	echo "            Creates snapshot on exit"
-	echo
-	echo "    Examples:"
-	echo "        * Using a default Guest OS '$GUEST_OS'"
-	echo "        $THIS_SCRIPT"
-	echo
-	echo "        * Using any Guest OS"
-	echo "        $THIS_SCRIPT -g \$GUEST_OS"
+	cat <<EOF
+Usage: $THIS_SCRIPT [options]
+
+Note: The guest OS ISO image must be pre-downloaded into pre-defined path ~/$T_QEMU_IMAGES_DIR
+
+Options:
+	[-g|--guest-os]
+		Name of guest OS matching the iso file name
+
+	TODO:
+	[-r|--ram]
+		System memory RAM size.
+	[-d|--disk]
+		Hard disk memory HDD size.
+	[-c|--cpus]
+		No of CPUs.
+	[-f|--format]
+		Guest OS valid output image format e.g. qcow2.
+	[-s|--use-snapshot]
+		Use provided snapshot if valid
+	[--create-snapshot-on-exit]
+		Creates snapshot on exit
+
+Examples:
+	* Using a default Guest OS '$GUEST_OS'
+		$THIS_SCRIPT
+
+	* Using any Guest OS
+		$THIS_SCRIPT -g \$GUEST_OS
+EOF
 }
 
 # echo before executing the commands
