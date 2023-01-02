@@ -75,11 +75,12 @@ do
 			GUEST_HDD="$2"
 			shift
 			;;
-		*)
-			echo "*** Invalid option '$key' see help doc below for examples ***"
-			echo
+		-h|--help)
 			_help
 			exit
+			;;
+		*)
+			break
 			;;
 	esac
 	shift
@@ -133,4 +134,5 @@ _exec \
 	-audiodev id=pa,driver=pa \
 	-vga virtio \
 	-cpu host \
+	"$@" \
 	;
