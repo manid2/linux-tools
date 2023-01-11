@@ -14,11 +14,11 @@ install_bins () {
 		if [ ! -f "$bin_path" ]; then
 			rel_path=$(realpath \
 				--relative-to=$user_local_bin_path \
-				$bin)
+				"bin/$bin")
 
 			ln -s $rel_path $bin_path
 		else
-			echo "'$bin' already installed."
+			echo "'bin/$bin' already installed."
 		fi
 	done
 }
