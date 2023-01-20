@@ -5,7 +5,9 @@
 install_bins () {
 	local user_local_bin_path="$HOME/.local/bin"
 	local user_local_bins=( \
-		qemuctl-guest-os
+		qemuctl-guest-os \
+		ysdo \
+		dictls \
 	)
 
 	for bin in "${user_local_bins[@]}"
